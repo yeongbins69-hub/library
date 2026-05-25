@@ -1,85 +1,112 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>서재</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;600;700&family=Noto+Sans+KR:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-  :root {
+  :root[data-theme="dark"] {
     --bg: #0e0c0a; --bg2: #161310; --bg3: #1e1a16;
     --surface: #242019; --border: #2e2820;
     --accent: #c8a96e; --accent2: #e8c98e;
     --text: #e8e0d0; --text2: #a09080; --text3: #6a5f52;
+    --shadow: rgba(0,0,0,0.4);
+  }
+  :root[data-theme="light"] {
+    --bg: #f5f0e8; --bg2: #ede8de; --bg3: #e5dfd4;
+    --surface: #fff; --border: #d8d0c0;
+    --accent: #8b6914; --accent2: #a07820;
+    --text: #2a2018; --text2: #6a5840; --text3: #a09070;
+    --shadow: rgba(0,0,0,0.12);
   }
   * { margin:0; padding:0; box-sizing:border-box; }
-  body { background:var(--bg); color:var(--text); font-family:'Noto Sans KR',sans-serif; font-weight:300; min-height:100vh; overflow-x:hidden; }
+  body { background:var(--bg); color:var(--text); font-family:'Noto Sans KR',sans-serif; font-weight:300; min-height:100vh; overflow-x:hidden; transition:background 0.3s,color 0.3s; }
 
-  header { position:fixed; top:0; left:0; right:0; z-index:100; padding:0 24px; height:56px; display:flex; align-items:center; justify-content:space-between; background:rgba(14,12,10,0.92); backdrop-filter:blur(12px); border-bottom:1px solid var(--border); }
-  .logo { font-family:'Noto Serif KR',serif; font-size:20px; font-weight:600; color:var(--accent); letter-spacing:0.05em; }
-  .header-right { display:flex; align-items:center; gap:12px; }
-  #auth-btn { padding:6px 16px; background:var(--accent); color:#1a1208; border:none; border-radius:4px; font-size:13px; font-weight:500; cursor:pointer; font-family:'Noto Sans KR',sans-serif; transition:background 0.2s; }
+  header { position:fixed; top:0; left:0; right:0; z-index:100; padding:0 20px; height:56px; display:flex; align-items:center; justify-content:space-between; background:var(--bg); border-bottom:1px solid var(--border); }
+  .logo { font-family:'Noto Serif KR',serif; font-size:20px; font-weight:600; color:var(--accent); }
+  .header-right { display:flex; align-items:center; gap:8px; }
+
+  .icon-btn { width:34px; height:34px; background:var(--surface); border:1px solid var(--border); border-radius:6px; color:var(--text2); font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s; }
+  .icon-btn:hover { border-color:var(--accent); color:var(--accent); }
+
+  #auth-btn { padding:6px 14px; background:var(--accent); color:#fff; border:none; border-radius:5px; font-size:13px; font-weight:500; cursor:pointer; font-family:'Noto Sans KR',sans-serif; transition:background 0.2s; }
+  [data-theme="dark"] #auth-btn { color:#1a1208; }
   #auth-btn:hover { background:var(--accent2); }
   #user-info { font-size:12px; color:var(--text2); display:none; }
 
   main { padding-top:56px; max-width:900px; margin:0 auto; padding-left:20px; padding-right:20px; }
 
-  .search-bar { margin:24px 0 16px; display:flex; gap:10px; }
-  #search-input { flex:1; padding:10px 16px; background:var(--surface); border:1px solid var(--border); border-radius:6px; color:var(--text); font-size:14px; font-family:'Noto Sans KR',sans-serif; outline:none; transition:border-color 0.2s; }
+  /* 최근 읽은 */
+  #recent-section { margin:20px 0 0; }
+  .section-label { font-size:11px; color:var(--text3); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:10px; }
+  #recent-list { display:flex; gap:10px; overflow-x:auto; padding-bottom:8px; margin-bottom:20px; scrollbar-width:thin; }
+  #recent-list::-webkit-scrollbar { height:4px; }
+  #recent-list::-webkit-scrollbar-track { background:transparent; }
+  #recent-list::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+  .recent-card { flex-shrink:0; background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:12px 14px; cursor:pointer; transition:all 0.2s; min-width:160px; max-width:200px; }
+  .recent-card:hover { border-color:var(--accent); }
+  .recent-novel { font-size:13px; font-weight:500; color:var(--text); margin-bottom:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .recent-ep { font-size:11px; color:var(--accent); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+  .search-bar { display:flex; gap:8px; margin:0 0 14px; }
+  #search-input { flex:1; padding:10px 14px; background:var(--surface); border:1px solid var(--border); border-radius:6px; color:var(--text); font-size:14px; font-family:'Noto Sans KR',sans-serif; outline:none; transition:border-color 0.2s; }
   #search-input:focus { border-color:var(--accent); }
   #search-input::placeholder { color:var(--text3); }
-  #refresh-btn { padding:10px 16px; background:var(--surface); border:1px solid var(--border); border-radius:6px; color:var(--text2); font-size:13px; cursor:pointer; transition:all 0.2s; white-space:nowrap; }
+  #refresh-btn { padding:10px 14px; background:var(--surface); border:1px solid var(--border); border-radius:6px; color:var(--text2); font-size:13px; cursor:pointer; transition:all 0.2s; white-space:nowrap; }
   #refresh-btn:hover { border-color:var(--accent); color:var(--accent); }
 
-  #novel-list { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:12px; margin-bottom:40px; }
+  #novel-list { display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:10px; margin-bottom:40px; }
   .novel-card { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:16px; cursor:pointer; transition:all 0.2s; position:relative; overflow:hidden; }
   .novel-card::before { content:''; position:absolute; top:0; left:0; width:3px; height:100%; background:var(--accent); opacity:0; transition:opacity 0.2s; }
-  .novel-card:hover { border-color:var(--accent); transform:translateY(-2px); box-shadow:0 8px 24px rgba(0,0,0,0.4); }
+  .novel-card:hover { border-color:var(--accent); transform:translateY(-2px); box-shadow:0 6px 20px var(--shadow); }
   .novel-card:hover::before { opacity:1; }
   .novel-title { font-family:'Noto Serif KR',serif; font-size:15px; font-weight:600; color:var(--text); margin-bottom:6px; line-height:1.4; }
   .novel-meta { font-size:12px; color:var(--text3); }
+  .novel-badge { display:inline-block; font-size:10px; color:var(--accent); border:1px solid var(--accent); border-radius:3px; padding:1px 5px; margin-left:6px; vertical-align:middle; }
 
   #episode-view { display:none; }
   .ep-header { display:flex; align-items:center; gap:12px; margin:20px 0 16px; }
   #back-btn { padding:6px 14px; background:transparent; border:1px solid var(--border); border-radius:4px; color:var(--text2); font-size:13px; cursor:pointer; transition:all 0.2s; }
   #back-btn:hover { border-color:var(--accent); color:var(--accent); }
-  .ep-novel-title { font-family:'Noto Serif KR',serif; font-size:18px; font-weight:600; color:var(--accent); }
-  #episode-list { display:flex; flex-direction:column; gap:4px; margin-bottom:40px; }
+  .ep-novel-title { font-family:'Noto Serif KR',serif; font-size:17px; font-weight:600; color:var(--accent); }
+  #episode-list { display:flex; flex-direction:column; gap:3px; margin-bottom:40px; }
   .ep-item { display:flex; align-items:center; padding:10px 14px; background:var(--surface); border:1px solid var(--border); border-radius:6px; cursor:pointer; transition:all 0.15s; gap:12px; }
   .ep-item:hover { border-color:var(--accent); background:var(--bg3); }
+  .ep-item.ep-last-read { border-color:var(--accent); background:var(--bg3); }
   .ep-no { font-size:11px; color:var(--text3); min-width:36px; font-variant-numeric:tabular-nums; }
   .ep-title { font-size:14px; color:var(--text); flex:1; }
+  .ep-last-badge { font-size:10px; color:var(--accent); border:1px solid var(--accent); border-radius:3px; padding:1px 5px; }
 
-  #reader-view { display:none; position:fixed; inset:0; z-index:200; background:var(--bg); overflow-y:auto; }
-  .reader-header { position:sticky; top:0; display:flex; align-items:center; justify-content:space-between; padding:14px 20px; background:rgba(14,12,10,0.95); backdrop-filter:blur(12px); border-bottom:1px solid var(--border); z-index:10; }
-  .reader-title { font-size:13px; color:var(--text2); flex:1; text-align:center; margin:0 16px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  #close-reader, #prev-ep, #next-ep { padding:6px 14px; background:transparent; border:1px solid var(--border); border-radius:4px; color:var(--text2); font-size:13px; cursor:pointer; transition:all 0.2s; white-space:nowrap; }
+  #reader-view { display:none; position:fixed; inset:0; z-index:200; background:var(--bg); overflow-y:auto; transition:background 0.3s; }
+  .reader-header { position:sticky; top:0; display:flex; align-items:center; justify-content:space-between; padding:12px 20px; background:var(--bg); border-bottom:1px solid var(--border); z-index:10; }
+  .reader-title { font-size:13px; color:var(--text2); flex:1; text-align:center; margin:0 12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  #close-reader, #prev-ep, #next-ep { padding:6px 12px; background:transparent; border:1px solid var(--border); border-radius:4px; color:var(--text2); font-size:13px; cursor:pointer; transition:all 0.2s; white-space:nowrap; }
   #close-reader:hover, #prev-ep:hover, #next-ep:hover { border-color:var(--accent); color:var(--accent); }
   #prev-ep:disabled, #next-ep:disabled { opacity:0.3; cursor:default; pointer-events:none; }
-  .reader-nav { display:flex; gap:8px; align-items:center; }
-  .reader-body { max-width:680px; margin:0 auto; padding:40px 24px 80px; }
-  .reader-ep-title { font-family:'Noto Serif KR',serif; font-size:22px; font-weight:600; color:var(--accent); margin-bottom:32px; line-height:1.5; }
-  #reader-content { font-family:'Noto Serif KR',serif; font-size:17px; font-weight:300; line-height:2.2; color:var(--text); white-space:pre-wrap; word-break:keep-all; }
+  .reader-nav { display:flex; gap:6px; align-items:center; }
+  .reader-body { max-width:680px; margin:0 auto; padding:36px 24px 80px; }
+  .reader-ep-title { font-family:'Noto Serif KR',serif; font-size:21px; font-weight:600; color:var(--accent); margin-bottom:28px; line-height:1.5; }
+  #reader-content { font-family:'Noto Serif KR',serif; font-weight:300; line-height:2.2; color:var(--text); white-space:pre-wrap; word-break:keep-all; }
 
-  .status { text-align:center; padding:60px 20px; color:var(--text3); font-size:14px; line-height:2; }
-  .status .icon { font-size:40px; margin-bottom:16px; }
-  .spinner { display:inline-block; width:20px; height:20px; border:2px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin 0.8s linear infinite; margin-right:8px; vertical-align:middle; }
+  .font-controls { display:flex; align-items:center; gap:6px; }
+  .font-btn { width:28px; height:28px; background:var(--surface); border:1px solid var(--border); border-radius:4px; color:var(--text2); font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s; }
+  .font-btn:hover { border-color:var(--accent); color:var(--accent); }
+  #font-size-label { font-size:12px; color:var(--text3); min-width:28px; text-align:center; }
+
+  .status { text-align:center; padding:50px 20px; color:var(--text3); font-size:14px; line-height:2; }
+  .status .icon { font-size:36px; margin-bottom:12px; }
+  .spinner { display:inline-block; width:18px; height:18px; border:2px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin 0.8s linear infinite; margin-right:8px; vertical-align:middle; }
   @keyframes spin { to { transform:rotate(360deg); } }
 
-  .font-controls { display:flex; align-items:center; gap:8px; }
-  .font-btn { width:28px; height:28px; background:var(--surface); border:1px solid var(--border); border-radius:4px; color:var(--text2); font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s; }
-  .font-btn:hover { border-color:var(--accent); color:var(--accent); }
-  #font-size-label { font-size:12px; color:var(--text3); min-width:32px; text-align:center; }
-
-  #login-screen { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:calc(100vh - 56px); gap:24px; text-align:center; padding:40px; }
-  .login-box { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:48px 40px; max-width:360px; width:100%; }
-  .login-icon { font-size:48px; margin-bottom:20px; }
-  .login-title { font-family:'Noto Serif KR',serif; font-size:22px; font-weight:600; color:var(--accent); margin-bottom:12px; }
-  .login-desc { font-size:13px; color:var(--text2); line-height:1.8; margin-bottom:28px; }
-  #login-btn { width:100%; padding:12px; background:var(--accent); color:#1a1208; border:none; border-radius:6px; font-size:14px; font-weight:600; cursor:pointer; font-family:'Noto Sans KR',sans-serif; transition:background 0.2s; }
+  #login-screen { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:calc(100vh - 56px); padding:40px; }
+  .login-box { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:44px 36px; max-width:340px; width:100%; text-align:center; }
+  .login-icon { font-size:44px; margin-bottom:16px; }
+  .login-title { font-family:'Noto Serif KR',serif; font-size:20px; font-weight:600; color:var(--accent); margin-bottom:10px; }
+  .login-desc { font-size:13px; color:var(--text2); line-height:1.8; margin-bottom:24px; }
+  #login-btn { width:100%; padding:12px; background:var(--accent); color:#fff; border:none; border-radius:6px; font-size:14px; font-weight:600; cursor:pointer; font-family:'Noto Sans KR',sans-serif; transition:background 0.2s; }
+  [data-theme="dark"] #login-btn { color:#1a1208; }
   #login-btn:hover { background:var(--accent2); }
-  .section-label { font-size:11px; color:var(--text3); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:12px; padding-left:2px; }
 </style>
 </head>
 <body>
@@ -87,7 +114,8 @@
 <header>
   <div class="logo">📚 서재</div>
   <div class="header-right">
-    <span id="user-info"></span>
+    <button class="icon-btn" onclick="toggleTheme()" id="theme-btn" title="다크/라이트 모드">🌙</button>
+    <span id="user-info">✓ 연결됨</span>
     <button id="auth-btn" onclick="handleAuth()">Google 로그인</button>
   </div>
 </header>
@@ -96,14 +124,21 @@
   <div class="login-box">
     <div class="login-icon">📖</div>
     <div class="login-title">내 서재</div>
-    <div class="login-desc">Google Drive에 저장된<br>소설을 읽을 수 있어요.<br>로그인하면 시작됩니다.</div>
+    <div class="login-desc">Google Drive에 저장된<br>소설을 읽을 수 있어요.</div>
     <button id="login-btn" onclick="handleAuth()">Google로 시작하기</button>
   </div>
 </div>
 
 <main id="main-content" style="display:none">
+  <!-- 최근 읽은 -->
+  <div id="recent-section" style="display:none">
+    <div class="section-label" style="margin-top:20px">최근 읽은 소설</div>
+    <div id="recent-list"></div>
+  </div>
+
+  <!-- 소설 목록 -->
   <div id="library-view">
-    <div class="search-bar">
+    <div class="search-bar" style="margin-top:16px">
       <input type="search" id="search-input" placeholder="소설 검색..." oninput="filterNovels(this.value)">
       <button id="refresh-btn" onclick="loadLibrary()">↻ 새로고침</button>
     </div>
@@ -111,6 +146,7 @@
     <div id="novel-list"><div class="status"><span class="spinner"></span> 불러오는 중...</div></div>
   </div>
 
+  <!-- 에피소드 목록 -->
   <div id="episode-view">
     <div class="ep-header">
       <button id="back-btn" onclick="showLibrary()">← 목록</button>
@@ -121,6 +157,7 @@
   </div>
 </main>
 
+<!-- 리더 -->
 <div id="reader-view">
   <div class="reader-header">
     <button id="close-reader" onclick="closeReader()">✕ 닫기</button>
@@ -150,8 +187,54 @@ let accessToken = null;
 let allNovels = [];
 let currentEpisodes = [];
 let currentEpIndex = -1;
+let currentNovelName = '';
+let currentFolderId = '';
 let fontSize = parseInt(localStorage.getItem('fontSize') || '17');
 
+// ── 테마 ────────────────────────────────────────────
+function toggleTheme() {
+  const html = document.documentElement;
+  const isDark = html.getAttribute('data-theme') === 'dark';
+  const next = isDark ? 'light' : 'dark';
+  html.setAttribute('data-theme', next);
+  document.getElementById('theme-btn').textContent = next === 'dark' ? '🌙' : '☀️';
+  localStorage.setItem('theme', next);
+}
+(function initTheme() {
+  const t = localStorage.getItem('theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', t);
+  document.getElementById('theme-btn').textContent = t === 'dark' ? '🌙' : '☀️';
+})();
+
+// ── 최근 읽은 기록 ────────────────────────────────────
+function getRecent() {
+  try { return JSON.parse(localStorage.getItem('recentNovels') || '[]'); } catch { return []; }
+}
+function saveRecent(novelId, novelName, folderId, epIndex, epName) {
+  let list = getRecent();
+  list = list.filter(r => r.novelId !== novelId);
+  list.unshift({ novelId, novelName, folderId, epIndex, epName, ts: Date.now() });
+  list = list.slice(0, 10);
+  localStorage.setItem('recentNovels', JSON.stringify(list));
+  renderRecent();
+}
+function getLastRead(novelId) {
+  return getRecent().find(r => r.novelId === novelId) || null;
+}
+function renderRecent() {
+  const list = getRecent();
+  const sec = document.getElementById('recent-section');
+  const el = document.getElementById('recent-list');
+  if (!list.length) { sec.style.display = 'none'; return; }
+  sec.style.display = 'block';
+  el.innerHTML = list.map(r => `
+    <div class="recent-card" onclick="openNovelById('${r.novelId}','${r.novelName.replace(/'/g,"\\'")}','${r.folderId}',${r.epIndex})">
+      <div class="recent-novel">${r.novelName}</div>
+      <div class="recent-ep">▶ ${r.epName}</div>
+    </div>`).join('');
+}
+
+// ── Google Auth ───────────────────────────────────────
 function loadGIS() {
   return new Promise(resolve => {
     if (window.google?.accounts) { resolve(); return; }
@@ -181,6 +264,29 @@ async function handleAuth() {
   tokenClient.requestAccessToken({ prompt: '' });
 }
 
+async function silentRefresh() {
+  await loadGIS();
+  return new Promise(resolve => {
+    try {
+      if (!tokenClient) {
+        tokenClient = google.accounts.oauth2.initTokenClient({
+          client_id: CLIENT_ID,
+          scope: SCOPES,
+          callback: (resp) => {
+            if (!resp.error) {
+              accessToken = resp.access_token;
+              localStorage.setItem('gToken', accessToken);
+              localStorage.setItem('gTokenTime', Date.now());
+            }
+            resolve(!resp.error);
+          }
+        });
+      }
+      tokenClient.requestAccessToken({ prompt: 'none' });
+    } catch { resolve(false); }
+  });
+}
+
 function checkSavedToken() {
   const token = localStorage.getItem('gToken');
   const time = parseInt(localStorage.getItem('gTokenTime') || '0');
@@ -193,25 +299,30 @@ function showMainUI() {
   document.getElementById('main-content').style.display = 'block';
   document.getElementById('auth-btn').style.display = 'none';
   document.getElementById('user-info').style.display = 'block';
-  document.getElementById('user-info').textContent = '✓ 연결됨';
+  renderRecent();
 }
 
-function showLibrary() {
-  document.getElementById('library-view').style.display = 'block';
-  document.getElementById('episode-view').style.display = 'none';
-  closeReader();
+function showLoginUI() {
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('main-content').style.display = 'none';
+  document.getElementById('auth-btn').style.display = 'block';
+  document.getElementById('user-info').style.display = 'none';
 }
 
+// ── Drive API ─────────────────────────────────────────
 async function driveRequest(url) {
-  const res = await fetch(url, { headers: { Authorization: 'Bearer ' + accessToken } });
+  let res = await fetch(url, { headers: { Authorization: 'Bearer ' + accessToken } });
   if (res.status === 401) {
-    localStorage.removeItem('gToken');
-    accessToken = null;
-    document.getElementById('login-screen').style.display = 'flex';
-    document.getElementById('main-content').style.display = 'none';
-    document.getElementById('auth-btn').style.display = 'block';
-    document.getElementById('user-info').style.display = 'none';
-    throw new Error('토큰 만료 — 다시 로그인해주세요');
+    // 토큰 만료 → 자동 갱신 시도
+    const ok = await silentRefresh();
+    if (ok) {
+      res = await fetch(url, { headers: { Authorization: 'Bearer ' + accessToken } });
+    } else {
+      localStorage.removeItem('gToken');
+      accessToken = null;
+      showLoginUI();
+      throw new Error('로그인이 필요해요');
+    }
   }
   return res.json();
 }
@@ -235,20 +346,23 @@ async function listFiles(folderId) {
 }
 
 async function readFile(fileId) {
-  const res = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, { headers: { Authorization: 'Bearer ' + accessToken } });
+  let res = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, { headers: { Authorization: 'Bearer ' + accessToken } });
+  if (res.status === 401) {
+    const ok = await silentRefresh();
+    if (ok) res = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, { headers: { Authorization: 'Bearer ' + accessToken } });
+    else { showLoginUI(); throw new Error('로그인이 필요해요'); }
+  }
   return res.text();
 }
+
+// ── 라이브러리 ─────────────────────────────────────────
+const NOVEL_FOLDER_ID = '1d9Ev_2EhQyd4or256E0mHvyn6vTIRPo5';
 
 async function loadLibrary() {
   const list = document.getElementById('novel-list');
   list.innerHTML = '<div class="status"><span class="spinner"></span> 불러오는 중...</div>';
   try {
-    const novelFolder = await findFolder('소설');
-    if (!novelFolder) {
-      list.innerHTML = '<div class="status"><div class="icon">📂</div>구글 드라이브에서<br>"소설" 폴더를 찾을 수 없어요.</div>';
-      return;
-    }
-    const subFolders = await listFolders(novelFolder.id);
+    const subFolders = await listFolders(NOVEL_FOLDER_ID);
     let novels = [];
     if (subFolders.length > 0) {
       for (const f of subFolders) {
@@ -256,13 +370,13 @@ async function loadLibrary() {
         novels.push({ id: f.id, name: f.name, episodeCount: files.length });
       }
     } else {
-      const files = await listFiles(novelFolder.id);
-      if (files.length > 0) novels.push({ id: novelFolder.id, name: '소설', episodeCount: files.length });
+      const files = await listFiles(NOVEL_FOLDER_ID);
+      if (files.length > 0) novels.push({ id: NOVEL_FOLDER_ID, name: '소설', episodeCount: files.length });
     }
     allNovels = novels;
     renderNovels(novels);
   } catch (e) {
-    if (e.message !== '토큰 만료 — 다시 로그인해주세요')
+    if (!e.message.includes('로그인'))
       list.innerHTML = `<div class="status"><div class="icon">⚠️</div>${e.message}</div>`;
   }
 }
@@ -270,19 +384,31 @@ async function loadLibrary() {
 function renderNovels(novels) {
   const list = document.getElementById('novel-list');
   if (!novels.length) { list.innerHTML = '<div class="status"><div class="icon">📭</div>소설이 없어요.</div>'; return; }
-  list.innerHTML = novels.map(n => `
-    <div class="novel-card" onclick="openNovel('${n.id}','${n.name.replace(/'/g,"\\'")}')">
-      <div class="novel-title">${n.name}</div>
+  const recent = getRecent();
+  list.innerHTML = novels.map(n => {
+    const r = recent.find(r => r.novelId === n.id);
+    const badge = r ? `<span class="novel-badge">${r.epName.slice(0,8)}</span>` : '';
+    return `<div class="novel-card" onclick="openNovelById('${n.id}','${n.name.replace(/'/g,"\\'")}','${n.id}')">
+      <div class="novel-title">${n.name}${badge}</div>
       <div class="novel-meta">${n.episodeCount}화</div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 function filterNovels(q) {
-  const filtered = q.trim() ? allNovels.filter(n => n.name.includes(q.trim())) : allNovels;
-  renderNovels(filtered);
+  renderNovels(q.trim() ? allNovels.filter(n => n.name.includes(q.trim())) : allNovels);
 }
 
-async function openNovel(folderId, name) {
+function showLibrary() {
+  document.getElementById('library-view').style.display = 'block';
+  document.getElementById('episode-view').style.display = 'none';
+  closeReader();
+}
+
+// ── 에피소드 목록 ─────────────────────────────────────
+async function openNovelById(novelId, name, folderId, jumpToEp = -1) {
+  currentNovelName = name;
+  currentFolderId = folderId;
   document.getElementById('library-view').style.display = 'none';
   document.getElementById('episode-view').style.display = 'block';
   document.getElementById('ep-novel-title').textContent = name;
@@ -291,32 +417,44 @@ async function openNovel(folderId, name) {
   try {
     const files = await listFiles(folderId);
     currentEpisodes = files;
+    const lastRead = getLastRead(novelId);
     document.getElementById('ep-count-label').textContent = `총 ${files.length}화`;
-    document.getElementById('episode-list').innerHTML = files.map((f, i) => `
-      <div class="ep-item" onclick="openEpisode(${i})">
+    document.getElementById('episode-list').innerHTML = files.map((f, i) => {
+      const title = f.name.replace(/^\d{4}_/, '').replace(/\.txt$/, '');
+      const isLast = lastRead && lastRead.epIndex === i;
+      return `<div class="ep-item${isLast ? ' ep-last-read' : ''}" onclick="openEpisode(${i},'${novelId}')">
         <span class="ep-no">${String(i+1).padStart(3,'0')}</span>
-        <span class="ep-title">${f.name.replace(/^\d{4}_/,'').replace(/\.txt$/,'')}</span>
-      </div>`).join('');
+        <span class="ep-title">${title}</span>
+        ${isLast ? '<span class="ep-last-badge">마지막</span>' : ''}
+      </div>`;
+    }).join('');
+    if (jumpToEp >= 0 && jumpToEp < files.length) {
+      setTimeout(() => openEpisode(jumpToEp, novelId), 100);
+    }
   } catch(e) {
     document.getElementById('episode-list').innerHTML = `<div class="status">오류: ${e.message}</div>`;
   }
 }
 
-async function openEpisode(index) {
+// ── 리더 ─────────────────────────────────────────────
+async function openEpisode(index, novelId) {
   currentEpIndex = index;
   const ep = currentEpisodes[index];
+  const nid = novelId || '';
   const reader = document.getElementById('reader-view');
   reader.style.display = 'block';
   reader.scrollTop = 0;
-  const title = ep.name.replace(/^\d{4}_/,'').replace(/\.txt$/,'');
+  const title = ep.name.replace(/^\d{4}_/, '').replace(/\.txt$/, '');
   document.getElementById('reader-title').textContent = title;
   document.getElementById('reader-ep-title').textContent = title;
   document.getElementById('reader-content').textContent = '불러오는 중...';
   document.getElementById('prev-ep').disabled = index === 0;
   document.getElementById('next-ep').disabled = index === currentEpisodes.length - 1;
+  // 최근 읽은 저장
+  if (nid) saveRecent(nid, currentNovelName, currentFolderId, index, title);
   try {
     let text = await readFile(ep.id);
-    text = text.replace(/^\s*\[.*?\]\s*\n[=\-]{10,}\s*\n/,'').trim();
+    text = text.replace(/^\s*\[.*?\]\s*\n[=\-]{10,}\s*\n/, '').trim();
     document.getElementById('reader-content').textContent = text;
     document.getElementById('reader-content').style.fontSize = fontSize + 'px';
   } catch(e) {
@@ -345,10 +483,18 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape') closeReader();
 });
 
+// ── 초기화 ───────────────────────────────────────────
 (async function init() {
   document.getElementById('reader-content').style.fontSize = fontSize + 'px';
   document.getElementById('font-size-label').textContent = fontSize;
-  if (checkSavedToken()) { showMainUI(); await loadLibrary(); }
+  if (checkSavedToken()) {
+    showMainUI();
+    await loadLibrary();
+  }
+  // 토큰 만료 전 자동 갱신 (50분마다)
+  setInterval(async () => {
+    if (accessToken) await silentRefresh();
+  }, 50 * 60 * 1000);
 })();
 </script>
 </body>
