@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>서재</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;600;700&family=Noto+Sans+KR:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e0c0a; --bg2: #161310; --bg3: #1e1a16;
+    --surface: #242019; --border: #2e2820;
+    --accent: #c8a96e; --accent2: #e8c98e;
+    --text: #e8e0d0; --text2: #a09080; --text3: #6a5f52;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text); font-family:'Noto Sans KR',sans-serif; font-weight:300; min-height:100vh; overflow-x:hidden; }
+
+  header { position:fixed; top:0; left:0; right:0; z-index:100; padding:0 24px; height:56px; display:flex; align-items:center; justify-content:space-between; background:rgba(14,12,10,0.92); backdrop-filter:blur(12px); border-bottom:1px solid var(--border); }
+  .logo { font-family:'Noto Serif KR',serif; font-size:20px; font-weight:600; color:var(--accent); letter-spacing:0.05em; }
+  .header-right { display:flex; align-items:center; gap:12px; }
+  #auth-btn { padding:6px 16px; background:var(--accent); color:#1a1208; border:none; border-radius:4px; font-size:13px; font-weight:500; cursor:pointer; font-family:'Noto Sans KR',sans-serif; transition:background 0.2s; }
+  #auth-btn:hover { background:var(--accent2); }
+  #user-info { font-size:12px; color:var(--text2); display:none; }
+
+  main { padding-top:56px; max-width:900px; margin:0 auto; padding-left:20px; padding-right:20px; }
+
+  .search-bar { margin:24px 0 16px; display:flex; gap:10px; }
+  #search-input { flex:1; padding:10px 16px; background:var(--surface); border:1px solid var(--border); border-radius:6px; color:var(--text); font-size:14px; font-family:'Noto Sans KR',sans-serif; outline:none; transition:border-color 0.2s; }
+  #search-input:focus { border-color:var(--accent); }
+  #search-input::placeholder { color:var(--text3); }
+  #refresh-btn { padding:10px 16px; background:var(--surface); border:1px solid var(--border); border-radius:6px; color:var(--text2); font-size:13px; cursor:pointer; transition:all 0.2s; white-space:nowrap; }
+  #refresh-btn:hover { border-color:var(--accent); color:var(--accent); }
+
+  #novel-list { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:12px; margin-bottom:40px; }
+  .novel-card { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:16px; cursor:pointer; transition:all 0.2s; position:relative; overflow:hidden; }
+  .novel-card::before { content:''; position:absolute; top:0; left:0; width:3px; height:100%; background:var(--accent); opacity:0; transition:opacity 0.2s; }
+  .novel-card:hover { border-color:var(--accent); transform:translateY(-2px); box-shadow:0 8px 24px rgba(0,0,0,0.4); }
+  .novel-card:hover::before { opacity:1; }
+  .novel-title { font-family:'Noto Serif KR',serif; font-size:15px; font-weight:600; color:var(--text); margin-bottom:6px; line-height:1.4; }
+  .novel-meta { font-size:12px; color:var(--text3); }
+
+  #episode-view { display:none; }
+  .ep-header { display:flex; align-items:center; gap:12px; margin:20px 0 16px; }
+  #back-btn { padding:6px 14px; background:transparent; border:1px solid var(--border); border-radius:4px; color:var(--text2); font-size:13px; cursor:pointer; transition:all 0.2s; }
+  #back-btn:hover { border-color:var(--accent); color:var(--accent); }
+  .ep-novel-title { font-family:'Noto Serif KR',serif; font-size:18px; font-weight:600; color:var(--accent); }
+  #episode-list { display:flex; flex-direction:column; gap:4px; margin-bottom:40px; }
+  .ep-item { display:flex; align-items:center; padding:10px 14px; background:var(--surface); border:1px solid var(--border); border-radius:6px; cursor:pointer; transition:all 0.15s; gap:12px; }
+  .ep-item:hover { border-color:var(--accent); background:var(--bg3); }
+  .ep-no { font-size:11px; color:var(--text3); min-width:36px; font-variant-numeric:tabular-nums; }
+  .ep-title { font-size:14px; color:var(--text); flex:1; }
+
+  #reader-view { display:none; position:fixed; inset:0; z-index:200; background:var(--bg); overflow-y:auto; }
+  .reader-header { position:sticky; top:0; display:flex; align-items:center; justify-content:space-between; padding:14px 20px; background:rgba(14,12,10,0.95); backdrop-filter:blur(12px); border-bottom:1px solid var(--border); z-index:10; }
+  .reader-title { font-size:13px; color:var(--text2); flex:1; text-align:center; margin:0 16px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  #close-reader, #prev-ep, #next-ep { padding:6px 14px; background:transparent; border:1px solid var(--border); border-radius:4px; color:var(--text2); font-size:13px; cursor:pointer; transition:all 0.2s; white-space:nowrap; }
+  #close-reader:hover, #prev-ep:hover, #next-ep:hover { border-color:var(--accent); color:var(--accent); }
+  #prev-ep:disabled, #next-ep:disabled { opacity:0.3; cursor:default; pointer-events:none; }
+  .reader-nav { display:flex; gap:8px; align-items:center; }
+  .reader-body { max-width:680px; margin:0 auto; padding:40px 24px 80px; }
+  .reader-ep-title { font-family:'Noto Serif KR',serif; font-size:22px; font-weight:600; color:var(--accent); margin-bottom:32px; line-height:1.5; }
+  #reader-content { font-family:'Noto Serif KR',serif; font-size:17px; font-weight:300; line-height:2.2; color:var(--text); white-space:pre-wrap; word-break:keep-all; }
+
+  .status { text-align:center; padding:60px 20px; color:var(--text3); font-size:14px; line-height:2; }
+  .status .icon { font-size:40px; margin-bottom:16px; }
+  .spinner { display:inline-block; width:20px; height:20px; border:2px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin 0.8s linear infinite; margin-right:8px; vertical-align:middle; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+
+  .font-controls { display:flex; align-items:center; gap:8px; }
+  .font-btn { width:28px; height:28px; background:var(--surface); border:1px solid var(--border); border-radius:4px; color:var(--text2); font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s; }
+  .font-btn:hover { border-color:var(--accent); color:var(--accent); }
+  #font-size-label { font-size:12px; color:var(--text3); min-width:32px; text-align:center; }
+
+  #login-screen { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:calc(100vh - 56px); gap:24px; text-align:center; padding:40px; }
+  .login-box { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:48px 40px; max-width:360px; width:100%; }
+  .login-icon { font-size:48px; margin-bottom:20px; }
+  .login-title { font-family:'Noto Serif KR',serif; font-size:22px; font-weight:600; color:var(--accent); margin-bottom:12px; }
+  .login-desc { font-size:13px; color:var(--text2); line-height:1.8; margin-bottom:28px; }
+  #login-btn { width:100%; padding:12px; background:var(--accent); color:#1a1208; border:none; border-radius:6px; font-size:14px; font-weight:600; cursor:pointer; font-family:'Noto Sans KR',sans-serif; transition:background 0.2s; }
+  #login-btn:hover { background:var(--accent2); }
+  .section-label { font-size:11px; color:var(--text3); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:12px; padding-left:2px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">📚 서재</div>
+  <div class="header-right">
+    <span id="user-info"></span>
+    <button id="auth-btn" onclick="handleAuth()">Google 로그인</button>
+  </div>
+</header>
+
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-icon">📖</div>
+    <div class="login-title">내 서재</div>
+    <div class="login-desc">Google Drive에 저장된<br>소설을 읽을 수 있어요.<br>로그인하면 시작됩니다.</div>
+    <button id="login-btn" onclick="handleAuth()">Google로 시작하기</button>
+  </div>
+</div>
+
+<main id="main-content" style="display:none">
+  <div id="library-view">
+    <div class="search-bar">
+      <input type="search" id="search-input" placeholder="소설 검색..." oninput="filterNovels(this.value)">
+      <button id="refresh-btn" onclick="loadLibrary()">↻ 새로고침</button>
+    </div>
+    <div class="section-label">소설 목록</div>
+    <div id="novel-list"><div class="status"><span class="spinner"></span> 불러오는 중...</div></div>
+  </div>
+
+  <div id="episode-view">
+    <div class="ep-header">
+      <button id="back-btn" onclick="showLibrary()">← 목록</button>
+      <div class="ep-novel-title" id="ep-novel-title"></div>
+    </div>
+    <div class="section-label" id="ep-count-label"></div>
+    <div id="episode-list"></div>
+  </div>
+</main>
+
+<div id="reader-view">
+  <div class="reader-header">
+    <button id="close-reader" onclick="closeReader()">✕ 닫기</button>
+    <div class="reader-title" id="reader-title"></div>
+    <div class="reader-nav">
+      <div class="font-controls">
+        <button class="font-btn" onclick="changeFontSize(-1)">A-</button>
+        <span id="font-size-label">17</span>
+        <button class="font-btn" onclick="changeFontSize(1)">A+</button>
+      </div>
+      <button id="prev-ep" onclick="navEpisode(-1)">◀</button>
+      <button id="next-ep" onclick="navEpisode(1)">▶</button>
+    </div>
+  </div>
+  <div class="reader-body">
+    <div class="reader-ep-title" id="reader-ep-title"></div>
+    <div id="reader-content"></div>
+  </div>
+</div>
+
+<script>
+const CLIENT_ID = '900997435759-tkn7rbni9bj1rvulnpg4ik34gbp88sdf.apps.googleusercontent.com';
+const SCOPES = 'https://www.googleapis.com/auth/drive.readonly';
+
+let tokenClient = null;
+let accessToken = null;
+let allNovels = [];
+let currentEpisodes = [];
+let currentEpIndex = -1;
+let fontSize = parseInt(localStorage.getItem('fontSize') || '17');
+
+function loadGIS() {
+  return new Promise(resolve => {
+    if (window.google?.accounts) { resolve(); return; }
+    const s = document.createElement('script');
+    s.src = 'https://accounts.google.com/gsi/client';
+    s.onload = resolve;
+    document.head.appendChild(s);
+  });
+}
+
+async function handleAuth() {
+  await loadGIS();
+  if (!tokenClient) {
+    tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: CLIENT_ID,
+      scope: SCOPES,
+      callback: async (resp) => {
+        if (resp.error) { alert('로그인 실패: ' + resp.error); return; }
+        accessToken = resp.access_token;
+        localStorage.setItem('gToken', accessToken);
+        localStorage.setItem('gTokenTime', Date.now());
+        showMainUI();
+        await loadLibrary();
+      }
+    });
+  }
+  tokenClient.requestAccessToken({ prompt: '' });
+}
+
+function checkSavedToken() {
+  const token = localStorage.getItem('gToken');
+  const time = parseInt(localStorage.getItem('gTokenTime') || '0');
+  if (token && Date.now() - time < 3400000) { accessToken = token; return true; }
+  return false;
+}
+
+function showMainUI() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('main-content').style.display = 'block';
+  document.getElementById('auth-btn').style.display = 'none';
+  document.getElementById('user-info').style.display = 'block';
+  document.getElementById('user-info').textContent = '✓ 연결됨';
+}
+
+function showLibrary() {
+  document.getElementById('library-view').style.display = 'block';
+  document.getElementById('episode-view').style.display = 'none';
+  closeReader();
+}
+
+async function driveRequest(url) {
+  const res = await fetch(url, { headers: { Authorization: 'Bearer ' + accessToken } });
+  if (res.status === 401) {
+    localStorage.removeItem('gToken');
+    accessToken = null;
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('main-content').style.display = 'none';
+    document.getElementById('auth-btn').style.display = 'block';
+    document.getElementById('user-info').style.display = 'none';
+    throw new Error('토큰 만료 — 다시 로그인해주세요');
+  }
+  return res.json();
+}
+
+async function findFolder(name) {
+  const q = `name='${name}' and mimeType='application/vnd.google-apps.folder' and trashed=false`;
+  const data = await driveRequest(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id,name)&pageSize=10`);
+  return data.files?.[0] || null;
+}
+
+async function listFolders(parentId) {
+  const q = `'${parentId}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`;
+  const data = await driveRequest(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id,name)&orderBy=name&pageSize=200`);
+  return data.files || [];
+}
+
+async function listFiles(folderId) {
+  const q = `'${folderId}' in parents and mimeType='text/plain' and trashed=false`;
+  const data = await driveRequest(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id,name)&orderBy=name&pageSize=500`);
+  return data.files || [];
+}
+
+async function readFile(fileId) {
+  const res = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, { headers: { Authorization: 'Bearer ' + accessToken } });
+  return res.text();
+}
+
+async function loadLibrary() {
+  const list = document.getElementById('novel-list');
+  list.innerHTML = '<div class="status"><span class="spinner"></span> 불러오는 중...</div>';
+  try {
+    const novelFolder = await findFolder('소설');
+    if (!novelFolder) {
+      list.innerHTML = '<div class="status"><div class="icon">📂</div>구글 드라이브에서<br>"소설" 폴더를 찾을 수 없어요.</div>';
+      return;
+    }
+    const subFolders = await listFolders(novelFolder.id);
+    let novels = [];
+    if (subFolders.length > 0) {
+      for (const f of subFolders) {
+        const files = await listFiles(f.id);
+        novels.push({ id: f.id, name: f.name, episodeCount: files.length });
+      }
+    } else {
+      const files = await listFiles(novelFolder.id);
+      if (files.length > 0) novels.push({ id: novelFolder.id, name: '소설', episodeCount: files.length });
+    }
+    allNovels = novels;
+    renderNovels(novels);
+  } catch (e) {
+    if (e.message !== '토큰 만료 — 다시 로그인해주세요')
+      list.innerHTML = `<div class="status"><div class="icon">⚠️</div>${e.message}</div>`;
+  }
+}
+
+function renderNovels(novels) {
+  const list = document.getElementById('novel-list');
+  if (!novels.length) { list.innerHTML = '<div class="status"><div class="icon">📭</div>소설이 없어요.</div>'; return; }
+  list.innerHTML = novels.map(n => `
+    <div class="novel-card" onclick="openNovel('${n.id}','${n.name.replace(/'/g,"\\'")}')">
+      <div class="novel-title">${n.name}</div>
+      <div class="novel-meta">${n.episodeCount}화</div>
+    </div>`).join('');
+}
+
+function filterNovels(q) {
+  const filtered = q.trim() ? allNovels.filter(n => n.name.includes(q.trim())) : allNovels;
+  renderNovels(filtered);
+}
+
+async function openNovel(folderId, name) {
+  document.getElementById('library-view').style.display = 'none';
+  document.getElementById('episode-view').style.display = 'block';
+  document.getElementById('ep-novel-title').textContent = name;
+  document.getElementById('ep-count-label').textContent = '불러오는 중...';
+  document.getElementById('episode-list').innerHTML = '<div class="status"><span class="spinner"></span></div>';
+  try {
+    const files = await listFiles(folderId);
+    currentEpisodes = files;
+    document.getElementById('ep-count-label').textContent = `총 ${files.length}화`;
+    document.getElementById('episode-list').innerHTML = files.map((f, i) => `
+      <div class="ep-item" onclick="openEpisode(${i})">
+        <span class="ep-no">${String(i+1).padStart(3,'0')}</span>
+        <span class="ep-title">${f.name.replace(/^\d{4}_/,'').replace(/\.txt$/,'')}</span>
+      </div>`).join('');
+  } catch(e) {
+    document.getElementById('episode-list').innerHTML = `<div class="status">오류: ${e.message}</div>`;
+  }
+}
+
+async function openEpisode(index) {
+  currentEpIndex = index;
+  const ep = currentEpisodes[index];
+  const reader = document.getElementById('reader-view');
+  reader.style.display = 'block';
+  reader.scrollTop = 0;
+  const title = ep.name.replace(/^\d{4}_/,'').replace(/\.txt$/,'');
+  document.getElementById('reader-title').textContent = title;
+  document.getElementById('reader-ep-title').textContent = title;
+  document.getElementById('reader-content').textContent = '불러오는 중...';
+  document.getElementById('prev-ep').disabled = index === 0;
+  document.getElementById('next-ep').disabled = index === currentEpisodes.length - 1;
+  try {
+    let text = await readFile(ep.id);
+    text = text.replace(/^\s*\[.*?\]\s*\n[=\-]{10,}\s*\n/,'').trim();
+    document.getElementById('reader-content').textContent = text;
+    document.getElementById('reader-content').style.fontSize = fontSize + 'px';
+  } catch(e) {
+    document.getElementById('reader-content').textContent = '오류: ' + e.message;
+  }
+}
+
+function navEpisode(dir) {
+  const next = currentEpIndex + dir;
+  if (next >= 0 && next < currentEpisodes.length) openEpisode(next);
+}
+
+function closeReader() { document.getElementById('reader-view').style.display = 'none'; }
+
+function changeFontSize(delta) {
+  fontSize = Math.max(13, Math.min(24, fontSize + delta));
+  localStorage.setItem('fontSize', fontSize);
+  document.getElementById('font-size-label').textContent = fontSize;
+  document.getElementById('reader-content').style.fontSize = fontSize + 'px';
+}
+
+document.addEventListener('keydown', e => {
+  if (document.getElementById('reader-view').style.display !== 'block') return;
+  if (e.key === 'ArrowLeft') navEpisode(-1);
+  if (e.key === 'ArrowRight') navEpisode(1);
+  if (e.key === 'Escape') closeReader();
+});
+
+(async function init() {
+  document.getElementById('reader-content').style.fontSize = fontSize + 'px';
+  document.getElementById('font-size-label').textContent = fontSize;
+  if (checkSavedToken()) { showMainUI(); await loadLibrary(); }
+})();
+</script>
+</body>
+</html>
