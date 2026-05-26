@@ -341,8 +341,15 @@ async function listFolders(parentId) {
 
 async function listFiles(folderId) {
   const q = `'${folderId}' in parents and mimeType='text/plain' and trashed=false`;
-  const data = await driveRequest(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id,name)&orderBy=name&pageSize=500`);
-  return data.files || [];
+  let files = [];
+  let pageToken = '';
+  do {
+    const url = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id,name),nextPageToken&orderBy=name&pageSize=1000${pageToken ? '&pageToken=' + pageToken : ''}`;
+    const data = await driveRequest(url);
+    files = files.concat(data.files || []);
+    pageToken = data.nextPageToken || '';
+  } while (pageToken);
+  return files;
 }
 
 async function readFile(fileId) {
